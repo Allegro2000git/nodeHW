@@ -1,0 +1,45 @@
+{
+  "name": "hwNode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --watch src --ext ts --exec \"tsx\" src/index.ts",
+    "test:e2e": "jest --config jest-e2e.json --runInBand --detectOpenHandles --forceExit",
+    "test:integration": "jest --config jest-integration.json --runInBand --detectOpenHandles --forceExit",
+    "coverage": "jest --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.10.0",
+      "onFail": "download"
+    }
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.1.1",
+    "@types/supertest": "^7.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.65.0",
+    "@typescript-eslint/parser": "^8.65.0",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.6",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.12",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  }
+}

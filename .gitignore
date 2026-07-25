@@ -1,0 +1,12 @@
+node_modules/
+.pnpm-debug.log*
+
+.env
+.env*.local
+
+dist/
+.tsbuildinfo
+
+pnpm-debug.log*
+.idea/
+.DS_Store
