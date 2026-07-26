@@ -1,0 +1,10 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "__tests__/e2e",
+  "transform": {
+    "^.+\\.(t|j)sx?$": "@swc/jest"
+  },
+  "testEnvironment": "node",
+  "testTimeout": 100000,
+  "testRegex": ".e2e.test.ts$"
+}
