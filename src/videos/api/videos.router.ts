@@ -13,10 +13,13 @@ import {
   minAgeRestrictionValidation,
 } from './middlewares/video.validation';
 import { inputValidation } from '../../common/validation/inputCheckErrorValidation';
+import { baseAuthGuard } from '../../auth/api/guards/base.auth.guard';
 
 export const videosRouter = Router();
 
-videosRouter.get('/', (_req: Request, res: Response<VideoViewModel[]>) => {
+videosRouter.use(baseAuthGuard);
+
+videosRouter.get('', (_req: Request, res: Response<VideoViewModel[]>) => {
   const videos = videosQueryRepository.findAllVideos();
   res.status(HttpStatuses.Success).send(videos);
 });
@@ -31,7 +34,7 @@ videosRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response<
 });
 
 videosRouter.post(
-  '/',
+  '',
   titleValidation,
   authorValidation,
   availableResolutionsValidation,

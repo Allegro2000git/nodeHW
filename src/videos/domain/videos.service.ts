@@ -2,41 +2,38 @@ import { type CreateVideoInputModel, type UpdateVideoInputModel, type VideoViewM
 import { videosRepository } from '../repositories/videos.repository';
 
 export const videosService = {
-  create(dto: CreateVideoInputModel) {
+  create(dto: CreateVideoInputModel): VideoViewModel {
     const createdAt = new Date();
+    // прибавление 1 дня (24 часа) в миллисекундах
+    const publicationDate = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
 
-    const publicationDate = new Date();
-    publicationDate.setDate(createdAt.getDate() + 1);
-
-    const newVideo: VideoViewModel = {
-      id: Date.now(),
+    const videoCreatedData: Omit<VideoViewModel, 'id'> = {
       title: dto.title,
       author: dto.author,
+      availableResolutions: dto.availableResolutions,
       canBeDownloaded: false,
       minAgeRestriction: null,
       createdAt: createdAt.toISOString(),
       publicationDate: publicationDate.toISOString(),
-      availableResolutions: dto.availableResolutions,
     };
 
-    return videosRepository.create(newVideo);
+    return videosRepository.create(videoCreatedData);
   },
 
   update(id: string, dto: UpdateVideoInputModel) {
     const video = videosRepository.findVideoById(id);
     if (!video) return false;
 
-    const updatedVideo: VideoViewModel = {
-      ...video,
+    const updatedVideoData: UpdateVideoInputModel = {
       title: dto.title,
       author: dto.author,
       availableResolutions: dto.availableResolutions,
+      publicationDate: dto.publicationDate,
       canBeDownloaded: dto.canBeDownloaded ?? false,
       minAgeRestriction: dto.minAgeRestriction ?? null,
-      publicationDate: dto.publicationDate,
     };
 
-    return videosRepository.update(id, updatedVideo);
+    return videosRepository.update(id, updatedVideoData);
   },
 
   delete(id: string) {
