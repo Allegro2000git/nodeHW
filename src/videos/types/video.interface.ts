@@ -10,7 +10,7 @@ export enum Resolution {
 }
 
 export interface VideoViewModel {
-  id: number;
+  id: string;
   title: string;
   author: string;
   canBeDownloaded: boolean;

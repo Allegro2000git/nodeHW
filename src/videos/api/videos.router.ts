@@ -14,18 +14,17 @@ import {
 } from './middlewares/video.validation';
 import { inputValidation } from '../../common/validation/inputCheckErrorValidation';
 import { baseAuthGuard } from '../../auth/api/guards/base.auth.guard';
+import type { IdType } from '../../common/types/id';
 
 export const videosRouter = Router();
 
-videosRouter.use(baseAuthGuard);
-
-videosRouter.get('', (_req: Request, res: Response<VideoViewModel[]>) => {
-  const videos = videosQueryRepository.findAllVideos();
+videosRouter.get('', async (_req: Request, res: Response<VideoViewModel[]>) => {
+  const videos = await videosQueryRepository.findAllVideos();
   res.status(HttpStatuses.Success).send(videos);
 });
 
-videosRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response<VideoViewModel>) => {
-  const video = videosQueryRepository.findVideoById(req.params.id);
+videosRouter.get('/:id', async (req: RequestWithParams<IdType>, res: Response<VideoViewModel>) => {
+  const video = await videosQueryRepository.findVideoById(req.params.id);
 
   if (!video) {
     return res.sendStatus(HttpStatuses.NotFound);
@@ -35,18 +34,25 @@ videosRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response<
 
 videosRouter.post(
   '',
+  baseAuthGuard,
   titleValidation,
   authorValidation,
   availableResolutionsValidation,
   inputValidation,
-  (req: RequestWithBody<CreateVideoInputModel>, res: Response<VideoViewModel>) => {
-    const createdVideo = videosService.create(req.body);
+  async (req: RequestWithBody<CreateVideoInputModel>, res: Response<VideoViewModel>) => {
+    const createdVideoId = await videosService.create(req.body);
+    const createdVideo = await videosQueryRepository.findVideoById(createdVideoId);
+
+    if (!createdVideo) {
+      return res.sendStatus(HttpStatuses.NotFound);
+    }
     res.status(HttpStatuses.Created).send(createdVideo);
   }
 );
 
 videosRouter.put(
   '/:id',
+  baseAuthGuard,
   titleValidation,
   authorValidation,
   availableResolutionsValidation,
@@ -54,7 +60,7 @@ videosRouter.put(
   minAgeRestrictionValidation,
   publicationDateValidation,
   inputValidation,
-  (req: RequestWithParamsAndBody<{ id: string }, UpdateVideoInputModel>, res: Response) => {
+  async (req: RequestWithParamsAndBody<IdType, UpdateVideoInputModel>, res: Response<null>) => {
     const result = videosService.update(req.params.id, req.body);
     if (!result) {
       return res.sendStatus(HttpStatuses.NotFound);
@@ -63,9 +69,9 @@ videosRouter.put(
   }
 );
 
-videosRouter.delete('/:id', (req: RequestWithParams<{ id: string }>, res) => {
-  const user = videosService.delete(req.params.id);
-  if (!user) {
+videosRouter.delete('/:id', baseAuthGuard, async (req: RequestWithParams<IdType>, res: Response<null>) => {
+  const video = await videosService.delete(req.params.id);
+  if (!video) {
     return res.sendStatus(HttpStatuses.NotFound);
   }
 

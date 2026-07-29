@@ -1,1 +1,1 @@
-//export type IdType = { id: string };
+export type IdType = { id: string };

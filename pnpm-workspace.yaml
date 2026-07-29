@@ -1,4 +1,5 @@
 allowBuilds:
   '@swc/core': false
   esbuild: false
+  mongodb-memory-server: false
   unrs-resolver: false

@@ -1,13 +1,14 @@
-import { type CreateVideoInputModel, type UpdateVideoInputModel, type VideoViewModel } from '../types/video.interface';
+import { type CreateVideoInputModel, type UpdateVideoInputModel } from '../types/video.interface';
 import { videosRepository } from '../repositories/videos.repository';
+import type { VideoDb } from '../types/video.db.interface';
 
 export const videosService = {
-  create(dto: CreateVideoInputModel): VideoViewModel {
+  async create(dto: CreateVideoInputModel): Promise<string> {
     const createdAt = new Date();
     // прибавление 1 дня (24 часа) в миллисекундах
     const publicationDate = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
 
-    const videoCreatedData: Omit<VideoViewModel, 'id'> = {
+    const videoCreatedData: VideoDb = {
       title: dto.title,
       author: dto.author,
       availableResolutions: dto.availableResolutions,
@@ -17,29 +18,27 @@ export const videosService = {
       publicationDate: publicationDate.toISOString(),
     };
 
-    return videosRepository.create(videoCreatedData);
+    return await videosRepository.create(videoCreatedData);
   },
 
-  update(id: string, dto: UpdateVideoInputModel) {
-    const video = videosRepository.findVideoById(id);
-    if (!video) return false;
+  async update(id: string, dto: UpdateVideoInputModel): Promise<boolean> {
+    const currentVideo = await videosRepository.findVideoById(id);
+    if (!currentVideo) return false;
 
-    const updatedVideoData: UpdateVideoInputModel = {
+    const updatedVideoData: VideoDb = {
       title: dto.title,
       author: dto.author,
       availableResolutions: dto.availableResolutions,
+      canBeDownloaded: dto.canBeDownloaded,
+      minAgeRestriction: dto.minAgeRestriction,
       publicationDate: dto.publicationDate,
-      canBeDownloaded: dto.canBeDownloaded ?? false,
-      minAgeRestriction: dto.minAgeRestriction ?? null,
+      createdAt: currentVideo.createdAt,
     };
 
-    return videosRepository.update(id, updatedVideoData);
+    return await videosRepository.update(id, updatedVideoData);
   },
 
-  delete(id: string) {
-    const user = videosRepository.findVideoById(id);
-    if (!user) return false;
-
+  async delete(id: string): Promise<boolean> {
     return videosRepository.delete(id);
   },
 };

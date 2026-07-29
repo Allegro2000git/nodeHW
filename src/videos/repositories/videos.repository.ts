@@ -1,37 +1,25 @@
-import { db } from '../../db/ in-memory.db';
-import type { UpdateVideoInputModel, VideoViewModel } from '../types/video.interface';
+import { db } from '../../db/db';
+import { ObjectId, type WithId } from 'mongodb';
+import type { VideoDb } from '../types/video.db.interface';
 
 export const videosRepository = {
-  findVideoById(id: string) {
-    const video = db.videos.find((video) => video.id === +id);
-    return video ? video : null;
+  async findVideoById(id: string): Promise<WithId<VideoDb> | null> {
+    return await db.collections.videosCollection.findOne({ _id: new ObjectId(id) });
   },
-  create(videoData: Omit<VideoViewModel, 'id'>): VideoViewModel {
-    const maxId = db.videos.length > 0 ? Math.max(...db.videos.map((v) => v.id)) : 0;
-
-    const newVideo: VideoViewModel = {
-      id: maxId + 1,
-      ...videoData,
-    };
-
-    db.videos.push(newVideo);
-    return newVideo;
+  async create(newVideoData: VideoDb): Promise<string> {
+    const newVideo = await db.collections.videosCollection.insertOne({ ...newVideoData });
+    return newVideo.insertedId.toString();
   },
-  update(id: string, updatedVideoData: UpdateVideoInputModel): boolean {
-    const index = db.videos.findIndex((v) => v.id === +id);
-    if (index === -1) return false;
+  async update(id: string, updatedVideoData: VideoDb): Promise<boolean> {
+    const updateResult = await db.collections.videosCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedVideoData }
+    );
 
-    db.videos[index] = {
-      ...db.videos[index],
-      ...updatedVideoData,
-    };
-    return true;
+    return updateResult.matchedCount > 0;
   },
-  delete(id: string) {
-    const index = db.videos.findIndex((v) => v.id === +id);
-    if (index === -1) return false;
-
-    db.videos.splice(index, 1);
-    return true;
+  async delete(id: string): Promise<boolean> {
+    const isDeleted = await db.collections.videosCollection.deleteOne({ _id: new ObjectId(id) });
+    return isDeleted.deletedCount === 1;
   },
 };
