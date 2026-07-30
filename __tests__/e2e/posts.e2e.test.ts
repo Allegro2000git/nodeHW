@@ -6,7 +6,7 @@ import { db } from '../../src/db/db';
 import { routersPaths } from '../../src/common/paths/paths';
 import { ADMIN_LOGIN, ADMIN_PASS } from '../../src/auth/api/guards/base.auth.guard';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
-import { createPost } from './utils/createPost';
+import { createPostInDb } from './utils/createPost';
 import { testingDtosCreator } from './utils/testingDtosCreator';
 
 describe('POSTS_TESTS_HOMETASK_03', () => {
@@ -51,7 +51,7 @@ describe('POSTS_TESTS_HOMETASK_03', () => {
   });
 
   it('should create post with correct data by sa and return it: STATUS 201', async () => {
-    const newPost = await createPost(app, localBlogId, { title: 'Clean Architecture' });
+    const newPost = await createPostInDb(app, localBlogId, { title: 'Clean Architecture' });
 
     expect(newPost).toEqual({
       id: expect.any(String),
@@ -91,7 +91,7 @@ describe('POSTS_TESTS_HOMETASK_03', () => {
   });
 
   it('should update existing post with correct data: STATUS 204', async () => {
-    const createdPost = await createPost(app, localBlogId, { title: 'Old Title' });
+    const createdPost = await createPostInDb(app, localBlogId, { title: 'Old Title' });
 
     const updatedDto = testingDtosCreator.createPostDto({
       blogId: localBlogId,
@@ -123,7 +123,7 @@ describe('POSTS_TESTS_HOMETASK_03', () => {
   });
 
   it('should delete post by id: STATUS 204', async () => {
-    const createdPost = await createPost(app, localBlogId);
+    const createdPost = await createPostInDb(app, localBlogId);
 
     await request(app)
       .delete(`${routersPaths.posts}/${createdPost.id}`)

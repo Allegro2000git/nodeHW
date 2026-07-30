@@ -5,7 +5,7 @@ import { routersPaths } from '../../../src/common/paths/paths';
 import { ADMIN_LOGIN, ADMIN_PASS } from '../../../src/auth/api/guards/base.auth.guard';
 import { HttpStatuses } from '../../../src/common/types/httpStatuses';
 
-export const createPost = async (app: Express, blogId: string, postDto?: Partial<PostDto>) => {
+export const createPostInDb = async (app: Express, blogId: string, postDto?: Partial<PostDto>) => {
   const dto = postDto
     ? testingDtosCreator.createPostDto({ blogId, ...postDto })
     : testingDtosCreator.createPostDto({ blogId });
