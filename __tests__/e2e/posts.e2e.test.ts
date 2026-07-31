@@ -7,7 +7,7 @@ import { routersPaths } from '../../src/common/paths/paths';
 import { ADMIN_LOGIN, ADMIN_PASS } from '../../src/auth/api/guards/base.auth.guard';
 import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { createPostInDb } from './utils/createPost';
-import { testingDtosCreator } from './utils/testingDtosCreator';
+import { type PostDto, testingDtosCreator } from './utils/testingDtosCreator';
 
 describe('posts e2e-tests', () => {
   const app = setupApp();
@@ -28,7 +28,7 @@ describe('posts e2e-tests', () => {
 
   let localBlogId: string;
   let localBlogName: string;
-  let postDto: any;
+  let postDto: PostDto;
 
   // Перед каждым тестом постов создаем один гарантированный блог
   beforeEach(async () => {
