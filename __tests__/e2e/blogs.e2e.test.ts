@@ -9,7 +9,7 @@ import { testingDtosCreator } from './utils/testingDtosCreator';
 import { ADMIN_LOGIN, ADMIN_PASS } from '../../src/auth/api/guards/base.auth.guard';
 import { createBlogInDb } from './utils/createBlog';
 
-describe('BLOGS_TESTS_HOMETASK_03', () => {
+describe('blogs e2e-tests', () => {
   const app = setupApp();
   const nonExistentId = getNonExistentId();
 
@@ -26,6 +26,7 @@ describe('BLOGS_TESTS_HOMETASK_03', () => {
     await db.stop();
   });
 
+  // авторизация проверка защиты эндпоинтов
   it('shouldn`t create blog without authorization: STATUS 401', async () => {
     await request(app).post(routersPaths.blogs).send({ name: 'Valid' }).expect(HttpStatuses.Unauthorized);
   });
@@ -48,6 +49,8 @@ describe('BLOGS_TESTS_HOMETASK_03', () => {
       name: 'Code Kitchen',
       description: blogDto.description,
       websiteUrl: blogDto.websiteUrl,
+      createdAt: expect.any(String),
+      isMembership: false,
     });
   });
 
@@ -58,6 +61,7 @@ describe('BLOGS_TESTS_HOMETASK_03', () => {
     const res = await request(app).get(routersPaths.blogs).expect(HttpStatuses.Success);
 
     expect(res.body.length).toBe(2);
+    expect(res.body[0].createdAt).toBeDefined();
   });
 
   it('shouldn`t create blog with incorrect name (too long): STATUS 400', async () => {
@@ -74,16 +78,17 @@ describe('BLOGS_TESTS_HOMETASK_03', () => {
 
   it('should update existing blog with correct data: STATUS 204', async () => {
     const createdBlog = await createBlogInDb(app, { name: 'Old Blog Name' });
-    const updateDto = testingDtosCreator.createBlogDto({ name: 'Brand New Name' });
+    const updateBlogDto = testingDtosCreator.createBlogDto({ name: 'New Blog Name' });
 
     await request(app)
       .put(`${routersPaths.blogs}/${createdBlog.id}`)
       .auth(ADMIN_LOGIN, ADMIN_PASS)
-      .send(updateDto)
+      .send(updateBlogDto)
       .expect(HttpStatuses.NoContent);
 
     const checkRes = await request(app).get(`${routersPaths.blogs}/${createdBlog.id}`);
-    expect(checkRes.body.name).toBe('Brand New Name');
+    expect(checkRes.body.name).toBe('New Blog Name');
+    expect(checkRes.body.createdAt).toBe(createdBlog.createdAt);
   });
 
   it('should delete blog by id: STATUS 204', async () => {
@@ -93,5 +98,7 @@ describe('BLOGS_TESTS_HOMETASK_03', () => {
       .delete(`${routersPaths.blogs}/${createdBlog.id}`)
       .auth(ADMIN_LOGIN, ADMIN_PASS)
       .expect(HttpStatuses.NoContent);
+
+    await request(app).get(`${routersPaths.blogs}/${createdBlog.id}`).expect(HttpStatuses.NotFound);
   });
 });

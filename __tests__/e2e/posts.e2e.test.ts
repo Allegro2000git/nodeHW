@@ -9,7 +9,7 @@ import { HttpStatuses } from '../../src/common/types/httpStatuses';
 import { createPostInDb } from './utils/createPost';
 import { testingDtosCreator } from './utils/testingDtosCreator';
 
-describe('POSTS_TESTS_HOMETASK_03', () => {
+describe('posts e2e-tests', () => {
   const app = setupApp();
   const nonExistentId = getNonExistentId();
 
@@ -60,6 +60,7 @@ describe('POSTS_TESTS_HOMETASK_03', () => {
       content: 'some testing Post content was created for tests',
       blogId: localBlogId,
       blogName: localBlogName,
+      createdAt: expect.any(String),
     });
   });
 
@@ -94,9 +95,9 @@ describe('POSTS_TESTS_HOMETASK_03', () => {
     const createdPost = await createPostInDb(app, localBlogId, { title: 'Old Title' });
 
     const updatedDto = testingDtosCreator.createPostDto({
-      blogId: localBlogId,
       title: 'Brand New Title',
       content: 'Updated content text',
+      blogId: localBlogId,
     });
 
     await request(app)
@@ -109,6 +110,7 @@ describe('POSTS_TESTS_HOMETASK_03', () => {
 
     expect(checkRes.body.title).toBe('Brand New Title');
     expect(checkRes.body.content).toBe('Updated content text');
+    expect(checkRes.body.createdAt).toBe(createdPost.createdAt);
     expect(checkRes.body.blogName).toBe(localBlogName);
   });
 
@@ -129,6 +131,8 @@ describe('POSTS_TESTS_HOMETASK_03', () => {
       .delete(`${routersPaths.posts}/${createdPost.id}`)
       .auth(ADMIN_LOGIN, ADMIN_PASS)
       .expect(HttpStatuses.NoContent);
+
+    await request(app).get(`${routersPaths.posts}/${createdPost.id}`).expect(HttpStatuses.NotFound);
   });
 
   it('shouldn`t delete post by id if specified post does not exist: STATUS 404', async () => {

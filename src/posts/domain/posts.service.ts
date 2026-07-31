@@ -14,6 +14,7 @@ export const postsService = {
       content: dto.content,
       blogId: dto.blogId,
       blogName: blog.name,
+      createdAt: new Date().toISOString(),
     };
 
     return await postsRepository.create(postCreatedData);
@@ -23,12 +24,16 @@ export const postsService = {
     const blog = await blogsRepository.findBlogById(dto.blogId);
     if (!blog) return false;
 
+    const currentPost = await postsRepository.findPostById(id);
+    if (!currentPost) return false;
+
     const updatedPostData: PostDb = {
       title: dto.title,
       shortDescription: dto.shortDescription,
       content: dto.content,
       blogId: dto.blogId,
       blogName: blog.name,
+      createdAt: currentPost.createdAt,
     };
 
     return await postsRepository.update(id, updatedPostData);

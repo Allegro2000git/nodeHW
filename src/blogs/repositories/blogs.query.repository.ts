@@ -10,6 +10,8 @@ export const blogsQueryRepository = {
       name: blog.name,
       description: blog.description,
       websiteUrl: blog.websiteUrl,
+      createdAt: blog.createdAt,
+      isMembership: blog.isMembership,
     };
   },
   async findAllBlogs(): Promise<BlogViewModel[]> {
