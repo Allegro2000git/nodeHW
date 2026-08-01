@@ -1,6 +1,11 @@
-import { Router, Response, type Request } from 'express';
+import { Router, Response } from 'express';
 import { HttpStatuses } from '../../common/types/httpStatuses';
-import type { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from '../../common/types/requests';
+import type {
+  RequestWithBody,
+  RequestWithParams,
+  RequestWithParamsAndBody,
+  RequestWithQuery,
+} from '../../common/types/requests';
 import { postsQueryRepository } from '../repositories/posts.query.repository';
 import { postsService } from '../domain/posts.service';
 import { inputValidation } from '../../common/validation/inputCheckErrorValidation';
@@ -13,11 +18,15 @@ import {
   postTitleValidation,
 } from './middlewares/post.validation';
 import type { IdType } from '../../common/types/id';
+import type { IPagination } from '../../common/types/paginationAndSorting';
+import { queryFieldsUtil } from '../../common/utils/sortQueryFields.util';
+import type { PostQueryParamsInput } from '../../common/types/sortQueryFields.type';
 
 export const postsRouter = Router();
 
-postsRouter.get('', async (_req: Request, res: Response<PostViewModel[]>) => {
-  const posts = await postsQueryRepository.findAllPosts();
+postsRouter.get('', async (req: RequestWithQuery<PostQueryParamsInput>, res: Response<IPagination<PostViewModel>>) => {
+  const sanitizedQuery = queryFieldsUtil.parsePostQuery(req.query);
+  const posts = await postsQueryRepository.findAllPosts(sanitizedQuery);
   res.status(HttpStatuses.Success).send(posts);
 });
 

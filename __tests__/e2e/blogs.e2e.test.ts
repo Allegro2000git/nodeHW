@@ -35,6 +35,13 @@ describe('blogs e2e-tests', () => {
     await request(app).delete(`${routersPaths.blogs}/${nonExistentId}`).expect(HttpStatuses.Unauthorized);
   });
 
+  it(' shouldn`t create post without auth: STATUS 401 - POST /blogs/:blogId/posts -', async () => {
+    await request(app)
+      .post(`${routersPaths.blogs}/${nonExistentId}/posts`)
+      .send({ title: 'Title', shortDescription: 'Desc', content: 'Content' })
+      .expect(HttpStatuses.Unauthorized);
+  });
+
   it('should create blog with correct data by sa and return it: STATUS 201', async () => {
     const blogDto = testingDtosCreator.createBlogDto({ name: 'Code Kitchen' });
 
@@ -60,8 +67,73 @@ describe('blogs e2e-tests', () => {
 
     const res = await request(app).get(routersPaths.blogs).expect(HttpStatuses.Success);
 
-    expect(res.body.length).toBe(2);
-    expect(res.body[0].createdAt).toBeDefined();
+    expect(res.body.items.length).toBe(2);
+    expect(res.body.items[0].createdAt).toBeDefined();
+    expect(res.body.totalCount).toBe(2);
+  });
+
+  it('should return 404 if blog does not exist, GET /blogs/:blogId/posts - ', async () => {
+    await request(app).get(`${routersPaths.blogs}/${nonExistentId}/posts`).expect(HttpStatuses.NotFound);
+  });
+
+  it('should return 404 if trying to create post for fake blog, POST /blogs/:blogId/posts', async () => {
+    await request(app)
+      .post(`${routersPaths.blogs}/${nonExistentId}/posts`)
+      .auth(ADMIN_LOGIN, ADMIN_PASS)
+      .send({ title: 'Valid Title', shortDescription: 'Valid Desc', content: 'Valid Content' })
+      .expect(HttpStatuses.NotFound);
+  });
+
+  it('should return 400 if title is too long, POST /blogs/:blogId/posts', async () => {
+    const blog = await createBlogInDb(app);
+
+    const res = await request(app)
+      .post(`${routersPaths.blogs}/${blog.id}/posts`)
+      .auth(ADMIN_LOGIN, ADMIN_PASS)
+      .send({
+        title: 'A very long title that exceeds exceeds exceeds 30 characters limit',
+        shortDescription: 'Valid',
+        content: 'Valid',
+      })
+      .expect(HttpStatuses.BadRequest);
+
+    expect(res.body.errorsMessages[0].field).toBe('title');
+  });
+
+  it('should successfully create post through blog and get it via paginated blog-posts list', async () => {
+    const blogFirst = await createBlogInDb(app, { name: 'Блог first' });
+    const blogSecond = await createBlogInDb(app, { name: 'Блог second' });
+
+    const createPostRes = await request(app)
+      .post(`${routersPaths.blogs}/${blogFirst.id}/posts`)
+      .auth(ADMIN_LOGIN, ADMIN_PASS)
+      .send({ title: 'First Story', shortDescription: 'Interesting', content: 'Long text...' })
+      .expect(HttpStatuses.Created);
+
+    expect(createPostRes.body).toEqual({
+      id: expect.any(String),
+      title: 'First Story',
+      shortDescription: 'Interesting',
+      content: 'Long text...',
+      blogId: blogFirst.id,
+      blogName: 'Блог first',
+      createdAt: expect.any(String),
+    });
+
+    await request(app)
+      .post(`${routersPaths.blogs}/${blogSecond.id}/posts`)
+      .auth(ADMIN_LOGIN, ADMIN_PASS)
+      .send({ title: 'Second Story', shortDescription: 'Desc', content: 'Text' });
+
+    const res = await request(app).get(`${routersPaths.blogs}/${blogFirst.id}/posts`).expect(HttpStatuses.Success);
+
+    expect(res.body).toEqual({
+      pagesCount: 1,
+      page: 1,
+      pageSize: 10,
+      totalCount: 1,
+      items: [createPostRes.body],
+    });
   });
 
   it('shouldn`t create blog with incorrect name (too long): STATUS 400', async () => {

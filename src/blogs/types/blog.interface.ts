@@ -1,3 +1,5 @@
+import type { PostInputModel } from '../../posts/types/post.interface';
+
 export interface BlogViewModel {
   id: string;
   name: string;
@@ -12,3 +14,5 @@ export type BlogInputModel = {
   description: string;
   websiteUrl: string;
 };
+
+export type CreatePostByBlogInputModel = Omit<PostInputModel, 'blogId'>; //Create new post for specific blog
